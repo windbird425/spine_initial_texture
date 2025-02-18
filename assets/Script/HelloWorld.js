@@ -1,10 +1,19 @@
 const { type } = require("os");
+const SplitType = cc.Enum({
+    FunctionName: 0,
+    RegionName: 1
+})
+const splitStr = "@";
 
 cc.Class({
     extends: cc.Component,
 
     properties: {
         sampleButton: {
+            default: null,
+            type: cc.Node
+        },
+        regionButton: {
             default: null,
             type: cc.Node
         },
@@ -18,22 +27,23 @@ cc.Class({
         },
     },
 
-    ctor(){
+    ctor() {
         this.changeParts = ["DLJM_DL_02", "DLJM_DZ_GunZi"];
-        this.buttonName = ["燈籠", "棍子"];
+        this.regionButtonNames = ["燈籠", "棍子"];
         this.changeSpriteFrames = null;
     },
 
     // use this for initialization
     onLoad: function () {
 
-        cc.assetManager.loadBundle('ChangeTexture',function (err, bundle){
+        cc.assetManager.loadBundle('ChangeTexture', function (err, bundle) {
             //初始化bundle下載
-            bundle.loadDir("", cc.SpriteFrame, function (err, bundle){
+            bundle.loadDir("", cc.SpriteFrame, function (err, bundle) {
                 cc.log("載完了");
                 cc.log(bundle);
                 this.changeSpriteFrames = bundle;
-                this._testChange();
+                this._initRegionButton();
+                this._initRegionButton2();
             }.bind(this))
         }.bind(this));
 
@@ -59,6 +69,38 @@ cc.Class({
         });
     },
 
+    _initRegionButton() {
+        this.regionButtonNames.forEach((element, index) => {
+            let buttonNode = cc.instantiate(this.regionButton);
+            let xx = index % 6;
+            let yy = Math.floor(index / 6);
+
+            buttonNode.name = "changeRegion@" + this.changeParts[index];
+            buttonNode.active = true;
+            buttonNode.x = buttonNode.x + (xx * 150);
+            buttonNode.y = buttonNode.y - (yy * 50);
+            buttonNode.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string = element;
+
+            this.node.addChild(buttonNode);
+        });
+    },
+
+    _initRegionButton2() {
+        this.regionButtonNames.forEach((element, index) => {
+            let buttonNode = cc.instantiate(this.regionButton);
+            let xx = index % 6;
+            let yy = Math.floor(index / 6);
+
+            buttonNode.name = "recoverRegion@" + this.changeParts[index];
+            buttonNode.active = true;
+            buttonNode.x = buttonNode.x + (xx * 150);
+            buttonNode.y = buttonNode.y - (yy * 50) - (buttonNode.height + 50);
+            buttonNode.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string = "還原" + element;
+
+            this.node.addChild(buttonNode);
+        });
+    },
+
     _testChange() {
         for (let i = 0; i < this.changeParts.length; i++) {
             let targetSlot = this.targetSpine.findSlot(this.changeParts[i]);
@@ -66,7 +108,7 @@ cc.Class({
             cc.log("test：", targetSlot);
 
             let textureName = this.changeParts[i];
-            let region = this.createRegion(this.changeSpriteFrames.find((spriteFrame) => spriteFrame.name == textureName));
+            let region = this.createRegionBySpriteFrame(this.changeSpriteFrames.find((spriteFrame) => spriteFrame.name == textureName));
 
             if (typeof (targetAtt.setRegion) == "function") {
                 // if (att.constructor.name == "RegionAttachment") {
@@ -80,11 +122,11 @@ cc.Class({
         }
     },
 
-    // 產生新的Region，用來更換新圖片
-    createRegion(frame) {
+    // 產生新的Region，用來更換新圖片(用SpriteFrame)
+    createRegionBySpriteFrame(frame) {
         // cc.log(frame.name)
         let texture = frame.getTexture();
-        console.log("createRegion：", texture)
+        console.log("createRegionBySpriteFrame：", texture)
 
         let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
         skeletonTexture.setRealTexture(texture);
@@ -100,7 +142,7 @@ cc.Class({
 
         let region = new sp.spine.TextureAtlasRegion();
         region.page = page;
-        region.name = frame.name
+        region.name = frame.name;
         // region.width = texture.width;
         // region.height = texture.height;
         // region.originalWidth = texture.width;
@@ -131,12 +173,109 @@ cc.Class({
         return region;
     },
 
-    onclickChangeSkin(event, customEventData) {
+    // 產生新的Region，用來更換新圖片(用Region)
+    createRegionByRegion(oldRegion) {
+        let texture = oldRegion.texture._texture;
+        console.log("createRegionByRegion：", texture)
+
+        let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
+        skeletonTexture.setRealTexture(texture);
+
+        let page = new sp.spine.TextureAtlasPage();
+        page.name = texture.name;
+        page.uWrap = sp.spine.TextureWrap.ClampToEdge;
+        page.vWrap = sp.spine.TextureWrap.ClampToEdge;
+        page.texture = skeletonTexture;
+        page.texture.setWraps(page.uWrap, page.vWrap);
+        page.width = texture.width;
+        page.height = texture.height;
+
+        let region = new sp.spine.TextureAtlasRegion();
+        region.page = page;
+        region.name = oldRegion.name;
+
+        region.width = oldRegion.width;
+        region.height = oldRegion.height;
+        region.x = oldRegion.x;
+        region.y = oldRegion.y;
+        region.originalWidth = oldRegion.originalWidth;
+        region.originalHeight = oldRegion.originalHeight;
+
+        region.rotate = oldRegion.rotate;
+
+        region.u = oldRegion.u;
+        region.v = oldRegion.v;
+        region.u2 = oldRegion.u2;
+        region.v2 = oldRegion.v2;
+
+        region.texture = skeletonTexture;
+        return region;
+    },
+
+    onClickChangeSkin(event, customEventData) {
         let buttonNode = event.target;
         let labelComponent = buttonNode.getChildByName("Background").getChildByName("Label").getComponent(cc.Label);
 
         this.targetSpine.setSkin(labelComponent.string);
         this.originSpine.setSkin(labelComponent.string);
+    },
+
+    onClickSwitchRegion(event, customEventData) {
+        let buttonNode = event.target;
+        let functionName = buttonNode.name.split(splitStr)[SplitType.FunctionName];
+        let regionName = buttonNode.name.split(splitStr)[SplitType.RegionName];
+
+        this["_" + functionName](regionName);
+    },
+
+    _changeRegion(regionName) {
+        let targetSlot = this.targetSpine.findSlot(regionName);
+        let targetAtt = targetSlot.getAttachment();
+        // cc.log("test：", targetSlot);
+
+        let textureName = regionName;
+        let spriteFrame = this.changeSpriteFrames.find((spriteFrame) => spriteFrame.name == textureName);
+        let region = null;
+        if (!!spriteFrame) {
+            region = this.createRegionBySpriteFrame(spriteFrame);
+        } else {
+            return false;
+        }
+
+        if (typeof (targetAtt.setRegion) == "function") {
+            targetAtt.setRegion(region);
+            targetAtt.updateOffset();
+        } else {
+            targetAtt.region = region;
+            targetAtt.updateUVs();
+        }
+    },
+
+    _recoverRegion(regionName) {
+        let targetSlot = this.targetSpine.findSlot(regionName);
+        let targetAtt = targetSlot.getAttachment();
+        let recoverSlot = this.originSpine.findSlot(regionName);
+        let recoverRegion = recoverSlot.getAttachment().region;
+
+        let region = this.createRegionByRegion(recoverRegion);
+        if (typeof (targetAtt.setRegion) == "function") {
+            targetAtt.setRegion(region);
+            targetAtt.updateOffset();
+        } else {
+            targetAtt.region = region;
+            targetAtt.updateUVs();
+        }
+        cc.log("recoverRegion：", region);
+    },
+
+    _recoverAttachment(regionName) {
+        let targetSlot = this.targetSpine.findSlot(regionName);
+        // let targetAtt = targetSlot.getAttachment();
+        let recoverSlot = this.originSpine.findSlot(regionName);
+        let recoverAtt = recoverSlot.getAttachment();
+
+        targetSlot.setAttachment(recoverAtt);
+        cc.log("recoverAttachment：", targetSlot.getAttachment());
     },
 
     // called every frame
