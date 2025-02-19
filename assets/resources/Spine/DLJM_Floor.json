@@ -2437,7 +2437,7 @@
             "attachment": "DLJM_JB_01"
         },
         {
-            "name": "DLJM_JB_2",
+            "name": "DLJM_JB_02",
             "bone": "bone139",
             "attachment": "DLJM_JB_02"
         },
@@ -3245,7 +3245,7 @@
                     "height": 60
                 }
             },
-            "DLJM_JB_2": {
+            "DLJM_JB_02": {
                 "DLJM_JB_02": {
                     "x": -0.67,
                     "y": 2.8,
