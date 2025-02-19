@@ -142,7 +142,7 @@ cc.Class({
     createRegionBySpriteFrame(frame) {
         // cc.log(frame.name)
         let texture = frame.getTexture(); // cc_Texture2D
-        console.log("createRegionBySpriteFrame：", texture)
+        cc.log("createRegionBySpriteFrame：", texture)
 
         let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
         skeletonTexture.setRealTexture(texture);
@@ -193,7 +193,7 @@ cc.Class({
     createRegionByRegion(oldRegion) {
         // let texture = oldRegion.texture._texture; // cc_Texture2D
         let skeletonTexture = oldRegion.texture; // sp_SkeletonTexture
-        console.log("createRegionByRegion skeletonTexture：", skeletonTexture);
+        cc.log("createRegionByRegion skeletonTexture：", skeletonTexture);
 
         // let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
         // skeletonTexture.setRealTexture(texture);
