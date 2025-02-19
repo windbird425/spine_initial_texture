@@ -28,8 +28,8 @@ cc.Class({
     },
 
     ctor() {
-        this.changeParts = ["DLJM_DL_02", "DLJM_DZ_GunZi"];
-        this.regionButtonNames = ["燈籠", "棍子"];
+        this.changeParts = ["DLJM_DL_02", "DLJM_DZ_GunZi", "DLJM_JB_02"];
+        this.regionButtonNames = ["燈籠", "棍子", "金幣"];
         this.changeSpriteFrames = null;
     },
 
@@ -43,7 +43,7 @@ cc.Class({
                 cc.log(bundle);
                 this.changeSpriteFrames = bundle;
                 this._initRegionButton();
-                this._initRegionButton2();
+                // this._initRegionButton2();
             }.bind(this))
         }.bind(this));
 
@@ -71,6 +71,7 @@ cc.Class({
 
     _initRegionButton() {
         this.regionButtonNames.forEach((element, index) => {
+            // 更換按鈕
             let buttonNode = cc.instantiate(this.regionButton);
             let xx = index % 6;
             let yy = Math.floor(index / 6);
@@ -80,8 +81,19 @@ cc.Class({
             buttonNode.x = buttonNode.x + (xx * 150);
             buttonNode.y = buttonNode.y - (yy * 50);
             buttonNode.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string = element;
+            // 還原按鈕
+            let recoverButtonNode = cc.instantiate(this.regionButton);
+            // let xx = index % 6;
+            // let yy = Math.floor(index / 6);
 
-            this.node.addChild(buttonNode);
+            recoverButtonNode.name = "recoverRegion@" + this.changeParts[index];
+            recoverButtonNode.active = true;
+            recoverButtonNode.x = recoverButtonNode.x + (xx * 150);
+            recoverButtonNode.y = recoverButtonNode.y - (yy * 50);
+            recoverButtonNode.getChildByName("Background").getChildByName("Label").getComponent(cc.Label).string = "還原" + element;
+
+            this.node.addChild(buttonNode, 2);
+            this.node.addChild(recoverButtonNode, 1);
         });
     },
 
@@ -125,14 +137,14 @@ cc.Class({
     // 產生新的Region，用來更換新圖片(用SpriteFrame)
     createRegionBySpriteFrame(frame) {
         // cc.log(frame.name)
-        let texture = frame.getTexture();
+        let texture = frame.getTexture(); // cc_Texture2D
         console.log("createRegionBySpriteFrame：", texture)
 
         let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
         skeletonTexture.setRealTexture(texture);
 
         let page = new sp.spine.TextureAtlasPage();
-        page.name = texture.name;
+        page.name = frame.name;
         page.uWrap = sp.spine.TextureWrap.ClampToEdge;
         page.vWrap = sp.spine.TextureWrap.ClampToEdge;
         page.texture = skeletonTexture;
@@ -175,20 +187,23 @@ cc.Class({
 
     // 產生新的Region，用來更換新圖片(用Region)
     createRegionByRegion(oldRegion) {
-        let texture = oldRegion.texture._texture;
-        console.log("createRegionByRegion：", texture)
+        // let texture = oldRegion.texture._texture; // cc_Texture2D
+        let skeletonTexture = oldRegion.texture; // sp_SkeletonTexture
+        console.log("createRegionByRegion skeletonTexture：", skeletonTexture);
 
-        let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
-        skeletonTexture.setRealTexture(texture);
+        // let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
+        // skeletonTexture.setRealTexture(texture);
 
         let page = new sp.spine.TextureAtlasPage();
-        page.name = texture.name;
+        page.name = oldRegion.name;
         page.uWrap = sp.spine.TextureWrap.ClampToEdge;
         page.vWrap = sp.spine.TextureWrap.ClampToEdge;
         page.texture = skeletonTexture;
         page.texture.setWraps(page.uWrap, page.vWrap);
-        page.width = texture.width;
-        page.height = texture.height;
+        // page.width = texture.width;
+        // page.height = texture.height;
+        page.width = skeletonTexture._image.width;
+        page.height = skeletonTexture._image.height;
 
         let region = new sp.spine.TextureAtlasRegion();
         region.page = page;
@@ -249,6 +264,9 @@ cc.Class({
             targetAtt.region = region;
             targetAtt.updateUVs();
         }
+
+        this.node.getChildByName("changeRegion@" + regionName).active = false;
+        this.node.getChildByName("recoverRegion@" + regionName).active = true;
     },
 
     _recoverRegion(regionName) {
@@ -266,6 +284,9 @@ cc.Class({
             targetAtt.updateUVs();
         }
         cc.log("recoverRegion：", region);
+
+        this.node.getChildByName("changeRegion@" + regionName).active = true;
+        this.node.getChildByName("recoverRegion@" + regionName).active = false;
     },
 
     _recoverAttachment(regionName) {
