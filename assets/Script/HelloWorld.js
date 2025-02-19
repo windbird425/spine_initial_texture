@@ -17,6 +17,10 @@ cc.Class({
             default: null,
             type: cc.Node
         },
+        downloadButton: {
+            default: null,
+            type: cc.Node
+        },
         targetSpine: {
             default: null,
             type: sp.Skeleton
@@ -37,17 +41,17 @@ cc.Class({
     onLoad: function () {
 
         cc.assetManager.loadBundle('ChangeTexture', function (err, bundle) {
-            //初始化bundle下載
+            // 初始化bundle下載
             bundle.loadDir("", cc.SpriteFrame, function (err, bundle) {
                 cc.log("載完了");
                 cc.log(bundle);
                 this.changeSpriteFrames = bundle;
-                this._initRegionButton();
-                // this._initRegionButton2();
+                this.downloadButton.active = true;
+                // window.downloadButton = this.downloadButton;
             }.bind(this))
         }.bind(this));
 
-        window.originSpine = this.originSpine;
+        // window.originSpine = this.originSpine;
     },
 
     _initSkinButton() {
@@ -241,6 +245,24 @@ cc.Class({
         let regionName = buttonNode.name.split(splitStr)[SplitType.RegionName];
 
         this["_" + functionName](regionName);
+    },
+
+    onClickDownloadSpine(event, customEventData) {
+        let spine_initJS = this.targetSpine.node.getComponent("spine_init");
+        spine_initJS.loadResources(function() {
+            let buttonNode = event.target;
+            buttonNode.opacity = 255;
+            buttonNode.active = true;
+            
+            cc.tween(buttonNode).to(1, {opacity: 0}, { easing: 'cubicOut' })
+            .call(function() {
+                buttonNode.active = false;
+                this._initRegionButton();
+                spine_initJS.replaceAllRegion();
+            }.bind(this))
+            .start();
+            
+        }.bind(this))
     },
 
     _changeRegion(regionName) {

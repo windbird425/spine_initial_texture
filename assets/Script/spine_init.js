@@ -49,17 +49,17 @@ cc.Class({
         this._initTextureMap();
 
         // 下載圖片資源包
-        this.loadResources(this.replaceAllRegion.bind(this));
+        // this.loadResources(this.replaceAllRegion.bind(this));
+
         // this.loadResources(this.loadResources2.bind(this));
         // this.loadResources2();
-        window.testSpine = this.skeleton;
     },
 
     start() { },
 
     _initTextureInfo() {
         this.skinNames.forEach((element) => {
-            // console.log("哈哈是我啦 查看skin " + element + "：");
+            // cc.log("查看skin " + element + "：");
             // cc.log(this.skeleton.skeletonData.skeletonJson.skins[element]);
 
             let skinName = element;
@@ -119,13 +119,13 @@ cc.Class({
             cc.SpriteFrame,
             function (err, assets) {
                 this._defaultSpriteFrames = assets;
-                window._defaultSpriteFrames = this._defaultSpriteFrames;
+                // window._defaultSpriteFrames = this._defaultSpriteFrames;
                 if (cb != undefined && cb != null) {
                     cb();
                 }
                 let endTime = new Date();
                 let timeDiff = (endTime - this.startTime) / 1000;
-                console.log("loadResources幾秒：" + timeDiff)
+                cc.log("loadResources幾秒：" + timeDiff)
             }.bind(this)
         );
     },
@@ -147,13 +147,12 @@ cc.Class({
                 }
                 let endTime = new Date();
                 let timeDiff = (endTime - this.startTime) / 1000;
-                console.log("loadResources2幾秒：" + timeDiff)
+                cc.log("loadResources2幾秒：" + timeDiff)
             }.bind(this)
         );
     },
 
     replaceAllRegion() {
-        cc.log("哈哈是我啦");
         cc.log(this._defaultSpriteFrames);
         // this.startTime = new Date();
 
@@ -191,14 +190,14 @@ cc.Class({
 
         // let endTime = new Date();
         // let timeDiff = (endTime - this.startTime) / 1000;
-        // console.log("幾秒：" + timeDiff)
+        // cc.log("幾秒：" + timeDiff)
     },
 
     // 產生新的Region，用來更換新圖片
     createRegion(frame, oldRegion) {
         // cc.log(frame.name)
         let texture = frame.getTexture();
-        console.log("createRegion：", texture)
+        cc.log("createRegion：", texture)
 
         let skeletonTexture = new sp.SkeletonTexture({ width: texture.width, height: texture.height });
         skeletonTexture.setRealTexture(texture);
